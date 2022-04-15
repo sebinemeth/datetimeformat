@@ -3,7 +3,6 @@
     <v-app-bar app color="primary" dark>
       <v-toolbar-title class="font-weight-bold">DateTimeFormat</v-toolbar-title>
     </v-app-bar>
-
     <v-main>
       <router-view />
     </v-main>

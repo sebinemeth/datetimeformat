@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/datetimeformat/precache-manifest.4ad33a751ea3e65bd7df25eb5ebf7c2a.js"
+  "/datetimeformat/precache-manifest.8fd7d1b825df131cb6ee8ab01514b709.js"
 );
 
 workbox.core.setCacheNameDetails({prefix: "datetimeformat"});

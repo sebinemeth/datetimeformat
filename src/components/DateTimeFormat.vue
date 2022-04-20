@@ -30,19 +30,28 @@
       </v-col>
       <v-col cols="12" md="6">
         <v-card class="mb-3">
-          <v-card-title>
-            {{ formattedDate }}
-          </v-card-title>
-        </v-card>
-        <v-card class="mb-3">
           <v-card-text>
             <pre>Date.prototype.{{ formatFnOptions[formatFn] }}(loc, opt)</pre>
           </v-card-text>
         </v-card>
-        <v-card>
+        <v-card class="mb-3">
           <v-card-text>
-            <pre>{{ dateTimeFormat }}</pre>
+            <v-form v-model="valid" ref="form">
+              <v-textarea
+                filled
+                @input="validate"
+                ref="textarea"
+                :value="JSON.stringify(dateTimeFormat, null, 2)"
+                style="font-family: monospace"
+                :rules="validJSON"
+              ></v-textarea>
+            </v-form>
           </v-card-text>
+        </v-card>
+        <v-card class="mb-3">
+          <v-card-title>
+            {{ formattedDate }}
+          </v-card-title>
         </v-card>
       </v-col>
     </v-row>
@@ -66,6 +75,7 @@ export default class DateTimeFormat extends Vue {
     minute: ["2-digit", "numeric"],
     second: ["2-digit", "numeric"],
     timeZoneName: ["short", "long"],
+    hour12: [true, false],
   };
   formatFnOptions = [
     "toLocaleString",
@@ -74,6 +84,27 @@ export default class DateTimeFormat extends Vue {
   ];
   now = new Date();
   interval = null as number | null;
+  validJSON = [
+    (value: string): boolean | string => {
+      try {
+        const obj = JSON.parse(value);
+        for (const [key, opt] of Object.entries(obj)) {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          if (!this.dateTimeFormatOptions[key])
+            return `Option ${key} is not supported`;
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          if (!this.dateTimeFormatOptions[key].includes(opt))
+            return `Value ${opt} is not supported for option ${key}`;
+        }
+        return true;
+      } catch (error) {
+        return "Not a valid json";
+      }
+    },
+  ];
+  valid = true;
 
   displayLocale = "en";
   formatFn = 0;
@@ -86,13 +117,14 @@ export default class DateTimeFormat extends Vue {
   get dateTimeFormat(): Record<string, string> {
     let df = {};
     for (const [key, opt] of Object.entries(this.dateTimeFormatRaw))
-      if (opt) df = { ...df, ...{ [key]: opt } };
+      if (opt !== null) df = { ...df, ...{ [key]: opt } };
+
     return df;
   }
 
   get formattedDate(): string {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    // @ts-ignore
     return this.now[this.formatFnOptions[this.formatFn]](
       this.displayLocale,
       this.dateTimeFormat
@@ -101,6 +133,15 @@ export default class DateTimeFormat extends Vue {
 
   mounted(): void {
     this.interval = window.setInterval(() => (this.now = new Date()), 1000);
+  }
+
+  validate(rawValue: string): void {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const valid = this.$refs.form.validate();
+    if (valid) {
+      this.dateTimeFormatRaw = JSON.parse(rawValue);
+    }
   }
 
   beforeDestroy(): void {
